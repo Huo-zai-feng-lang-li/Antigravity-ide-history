@@ -3,6 +3,10 @@
 > [!TIP]
 > 本仓库由自动化脚本维护，每小时自动同步一次官网最新版本。
 
+## 🔗 官方链接
+- 更新日志：https://antigravity.google/changelog
+- 历史版本：https://antigravity.google/releases
+
 ## 🌟 当前最新版本: `1.20.5`
 **更新时间**: `2026-03-10 11:36:52`
 
