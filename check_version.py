@@ -1,42 +1,23 @@
 import requests
+import json
 import re
 import os
 
+API_URL = "https://antigravity-auto-updater-974169037036.us-central1.run.app/releases"
+
 def 获取最新版本():
-    基础地址 = "https://antigravity.google"
-    下载页面 = f"{基础地址}/download"
-    请求头 = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
     try:
-        # 1. 获取下载页面 HTML
-        响应 = requests.get(下载页面, headers=请求头, timeout=15)
+        响应 = requests.get(API_URL, timeout=15)
         响应.raise_for_status()
-        网页内容 = 响应.text
-        
-        # 2. 寻找 main-*.js 文件
-        js文件匹配 = re.search(r'src="(main-[^"]+\.js)"', 网页内容)
-        if not js文件匹配:
-            print("错误：未能找到 main.js 文件")
-            return None
-        
-        js地址 = f"{基础地址}/{js文件匹配.group(1)}"
-        print(f"正在解析 JS 文件: {js地址}")
-        
-        # 3. 获取 JS 内容并提取版本号
-        js响应 = requests.get(js地址, headers=请求头, timeout=15)
-        js响应.raise_for_status()
-        js内容 = js响应.text
-        
-        # 匹配版本号规律：x.y.z-digits
-        版本匹配 = re.search(r'(\d+\.\d+\.\d+)-(\d+)', js内容)
-        if 版本匹配:
-            主版本 = 版本匹配.group(1)
-            完整版本 = f"{主版本}-{版本匹配.group(2)}"
-            return 主版本, 完整版本
-        else:
-            print("错误：未能从 JS 文件中提取到版本号")
+        数据 = 响应.json()
+        版本列表 = 数据 if isinstance(数据, list) else 数据.get("value", [])
+        if not 版本列表:
+            print("错误：API 返回空版本列表")
             return None, None
+        最新 = 版本列表[0]  # 列表已按最新排序
+        主版本 = 最新["version"]
+        完整版本 = f"{主版本}-{最新['execution_id']}"
+        return 主版本, 完整版本
     except Exception as e:
         print(f"请求失败: {e}")
         return None, None
@@ -173,7 +154,6 @@ def 下载安装包(版本, 完整版本):
 
 if __name__ == "__main__":
     import sys
-    import json
     
     # 支持命令行参数直接下载指定版本 (用于历史版本备份)
     if len(sys.argv) > 3 and sys.argv[1] == "--download":
